@@ -5,7 +5,6 @@ import time
 import urllib3
 import re
 
-pdURL = "https://events.pagerduty.com/v2/enqueue"
 PD_API_URL = "https://events.pagerduty.com/v2/enqueue"
 PD_ROUTING_KEYS = {
     "product": "R03E06M6QUDI8IOKHEQFAC95WHQEBWVV",
@@ -123,15 +122,23 @@ def lambda_handler(event, context):
         
         #parsing useful info from the logs
         errorDetails = logs[0]['error']
-        print("errorDetails = ", 'errorDetails')
+        print("errorDetails = ", errorDetails)
         
-        traceback = logs[0]['extra']['exc_info']
-        print("traceback = ", 'traceback')
+        traceback = "No traceback found."
+        context = 'No context found.'
+        errorsDetails = 'No details found.'
         
-        context = ''
-        if logs[0]['extra']['body']:
-            context = logs[0]['extra']['body']['context']
+        if 'extra' in logs[0]:
+            if 'exc_info' in logs[0]['extra']:
+                traceback = logs[0]['extra']['exc_info']
+            if ('body' in logs[0]['extra']) and ('context' in logs[0]['extra']['body']):
+                context = logs[0]['extra']['body']['context']
+            if 'errors' in logs[0]['extra']:
+                errorsDetails = logs[0]['extra']['errors']
+                
+        print("traceback = ", traceback)
         print("context = ", context)
+        print("errorsDetails = ", errorsDetails)
         
         custom_details = {
             #   "Name": message.get("AlarmName"),
@@ -142,7 +149,8 @@ def lambda_handler(event, context):
             #   "Error code": errorCode,
               "Error details": errorDetails,
               "Context": context,
-              "Traceback": traceback
+              "Traceback": traceback,
+              "More details": errorsDetails
             }
         
         payload = {
