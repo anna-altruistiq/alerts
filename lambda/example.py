@@ -5,7 +5,11 @@ import time
 import urllib3
 import re
 
+# TODO: make tests
+
+# TODO: make them environment variables
 PD_API_URL = "https://events.pagerduty.com/v2/enqueue"
+# TODO: cover the routing codes
 PD_ROUTING_KEYS = {
     "product": "R03E06M6QUDI8IOKHEQFAC95WHQEBWVV",
     "dev": "R03E082DCK7NS1R3IWVEZYY3H9MMPNGT",
@@ -17,6 +21,9 @@ ERROR_CODE_REGEX = r'^\[\w+\][^[]\[(\w+)\].*$'
 def lambda_handler(event, context):
 
     try:
+        # TODO: change to logger, if possible
+        # TODO: add more error handling#
+        # TODO: split into multiple functions
         print("trying...")
         #parse the message
         message = event.get("Records")[0]
@@ -110,6 +117,7 @@ def lambda_handler(event, context):
             print("len of results after loads = ", len(results))
             
             # if there are multiple results, glue them together to a list
+            # TODO: catch JsonDecodeError (json.decoder.JSONDecodeError) so we can parse the results for airflow
             for i, result in enumerate(results):
                 print("i = ", i)
                 print("result = ", result)
