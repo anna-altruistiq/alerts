@@ -1,0 +1,31 @@
+name: Deploy enriched_alerts Lambda
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "enriched_alerts/**"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+      - name: Configure AWS credentials from prod account
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.PROD_LAMBDA_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_LAMBDA_AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+      - name: deploy lambda
+        run: |
+          ./build.sh
+          aws s3 --region eu-west-1 cp enriched_alerts.zip s3://aq-lambda-source-code-prod/enriched_alerts.zip
+          aws lambda update-function-code --function-name enriched_alerts --s3-bucket aq-lambda-source-code-prod --s3-key enriched_alerts.zip

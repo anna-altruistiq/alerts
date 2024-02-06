@@ -1,3 +1,6 @@
-/some tests
-/.terraform
-/logs-to-alerts.code-workspace
+.venv
+**/.terraform
+**/.terraform.lock.hcl
+**/*.zip
+**/*.code-workspace
+**/package

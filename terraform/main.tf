@@ -72,18 +72,11 @@ resource "aws_sqs_queue_policy" "enriched_alerts_queue_policy" {
 POLICY
 }
 
-data "archive_file" "lambda_zip" {
-  type        = "zip"
-  source_file = "${path.module}/lambda/example.py"
-  output_path = "${path.module}/lambda/example.zip"
-}
-
 resource "aws_lambda_function" "results_updates_lambda" {
-  filename         = "${path.module}/lambda/example.zip"
+  filename         = "${path.module}/../enriched_alerts.zip"
   function_name    = "enriched_alerts_lambda"
   role             = aws_iam_role.lambda_role.arn
-  handler          = "example.lambda_handler"
-  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  handler          = "main.lambda_handler"
   runtime          = "python3.12"
   timeout          = 60
 }
@@ -178,4 +171,16 @@ resource "aws_iam_role_policy" "lambda_role_logs_policy" {
   ]
 }
 EOF
+}
+
+module "enriched_alerts" {
+  source          = "git::ssh://git@gitlab.com/altruistiq/terrablocks.git//blocks/lambda-s3-event?ref=v1.66.0"
+  s3_bucket       = var.source_code_bucket
+  name            = "enriched_alerts"
+  s3_key          = "enriched_alerts.zip"
+  handler_name    = "main.handler"
+  bucket_id       = var.application_file_store_bucket_id
+  lambda_runtime  = "python3.10"
+  filter_suffix   = ".pdf"
+  environment     = local.environment
 }
